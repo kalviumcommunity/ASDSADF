@@ -1,0 +1,217 @@
+import sys
+import os
+import json
+import requests
+import traceback
+from pprint import pprint
+
+# Ensure project root on sys.path (helps if scripts import modules in future)
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+BASE = os.environ.get("ASDSADF_BASE_URL", "http://127.0.0.1:8000")
+ENDPOINT = f"{BASE.rstrip('/')}/chat"
+HEADERS = {"Content-Type": "application/json"}
+
+def mask_key(k: str) -> str:
+    if not k:
+        return "<empty>"
+    if len(k) <= 8:
+        return "<redacted>"
+    return f"{k[:4]}...{k[-4:]}"
+
+def try_payload(payload):
+    print("="*80)
+    print("POST", ENDPOINT)
+    print("Payload:")
+    pprint(payload)
+    try:
+        r = requests.post(ENDPOINT, headers=HEADERS, data=json.dumps(payload), timeout=20)
+    except Exception as e:
+        print("Request failed:", repr(e))
+        traceback.print_exc()
+        return False
+
+    print("Status code:", r.status_code)
+    ct = r.headers.get("content-type", "")
+    body = None
+    try:
+        if "application/json" in ct:
+            body = r.json()
+        else:
+            # attempt to parse as json anyway
+            try:
+                body = r.json()
+            except Exception:
+                body = r.text
+    except Exception as e:
+        body = r.text
+
+    print("Response body:")
+    pprint(body)
+
+    if r.status_code == 422:
+        print("\nValidation error detail (422):")
+        if isinstance(body, dict) and "detail" in body:
+            pprint(body["detail"])
+        else:
+            print(body)
+        return False
+
+    if r.status_code >= 400:
+        print("\nNon-success response; headers:")
+        pprint(dict(r.headers))
+        return False
+
+    return True
+
+def main():
+    # Try a variety of payload shapes to reproduce the 422 and identify the mismatch.
+    payloads = [
+        # expected shape (likely valid)
+        {"message": "Hello, can you make me a learning roadmap?", "prompt_type": "zero_shot"},
+        # missing prompt_type (if default exists, should be accepted)
+        {"message": "Hello, can you make me a learning roadmap?"},
+        # wrong key name
+        {"user_input": "This key name might be wrong"},
+        # enum mismatch with hyphen
+        {"message": "Test", "prompt_type": "zero-shot"},
+        # different casing
+        {"message": "Test", "prompt_type": "ZERO_SHOT"},
+        # explicit session_id None
+        {"message": "Test", "prompt_type": "zero_shot", "session_id": None},
+        # small payload that frontend might send
+        {"message": "I want a roadmap for React", "prompt_type": "dynamic", "user_profile": {"current_level": "beginner", "time_commitment": "10h/week"}},
+    ]
+
+    any_fail = False
+    print("Testing /chat endpoint at:", ENDPOINT)
+    for p in payloads:
+        ok = try_payload(p)
+        if not ok:
+            any_fail = True
+
+    print("\nIf you see 422 responses, inspect the 'detail' entries above — they show exactly which field failed Pydantic validation.")
+    print("Example curl:")
+    print("""curl -X POST http://127.0.0.1:8000/chat -H "Content-Type: application/json" -d '{"message":"Hi","prompt_type":"zero_shot"}'""")
+    if any_fail:
+        print("\nOne or more payloads failed. Use the detailed 'detail' output above to adjust the payload shape or update src/models.py to accept alternate keys.")
+        sys.exit(2)
+    else:
+        print("\nAll payloads returned non-422 responses. If the frontend still gets 422, reproduce the exact payload sent by the frontend and re-run this script.")
+        sys.exit(0)
+
+if __name__ == "__main__":
+    main()
+
+
+# filepath: /home/kali/work/kalvium/ASDSADF/scripts/test_gemini_connection.py
+import sys
+import os
+import asyncio
+import traceback
+from importlib import import_module
+
+# Ensure project root on sys.path so src imports work
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+
+def mask_key(k: str) -> str:
+    if not k:
+        return "<empty>"
+    if len(k) <= 8:
+        return "<redacted>"
+    return f"{k[:4]}...{k[-4:]}"
+
+def print_env():
+    print("="*80)
+    print("ENV VARS (masked):")
+    print("GEMINI_API_KEY:", mask_key(os.environ.get("GEMINI_API_KEY", "")))
+    print("GEMINI_MODEL:", os.environ.get("GEMINI_MODEL", ""))
+    print("CHROMA_PERSIST_DIRECTORY:", os.environ.get("CHROMA_PERSIST_DIRECTORY", ""))
+    print()
+
+async def run_test():
+    try:
+        gemini_module = import_module("src.gemini_client")
+    except Exception as e:
+        print("Failed importing src.gemini_client:", repr(e))
+        traceback.print_exc()
+        return False
+
+    GeminiClient = getattr(gemini_module, "GeminiClient", None)
+    if GeminiClient is None:
+        print("GeminiClient class not found in src.gemini_client")
+        return False
+
+    client = None
+    # Try several instantiation strategies to match repo variants
+    try:
+        client = GeminiClient()  # prefer no-arg if available
+        print("Instantiated GeminiClient() without args")
+    except TypeError as e:
+        print("GeminiClient() requires args, trying with None:", repr(e))
+        try:
+            client = GeminiClient(None)
+            print("Instantiated GeminiClient(None)")
+        except Exception as e2:
+            print("Failed to instantiate GeminiClient with None:", repr(e2))
+            # Try to import RAGSystem and pass a minimal instance (without heavy initialize)
+            try:
+                rag_mod = import_module("src.rag_system")
+                RAGSystem = getattr(rag_mod, "RAGSystem", None)
+                if RAGSystem:
+                    rag = RAGSystem()
+                    client = GeminiClient(rag)
+                    print("Instantiated GeminiClient with RAGSystem instance (did not call initialize())")
+                else:
+                    print("RAGSystem class not found; cannot instantiate GeminiClient")
+                    return False
+            except Exception as e3:
+                print("Failed to import/create RAGSystem:", repr(e3))
+                traceback.print_exc()
+                return False
+    except Exception as e:
+        print("Unexpected error instantiating GeminiClient:", repr(e))
+        traceback.print_exc()
+        return False
+
+    # Call test_connection
+    try:
+        if not hasattr(client, "test_connection"):
+            print("GeminiClient has no test_connection method; attempting simple generate_response call as fallback.")
+            # Try generate_response if available
+            if hasattr(client, "generate_response"):
+                res = await client.generate_response("Hello, respond with OK", system_instruction="Respond with exactly: OK")
+                print("generate_response result (fallback):", res)
+                return "OK" in (res or "")
+            else:
+                print("No generate_response available; cannot test connection.")
+                return False
+
+        ok = await client.test_connection()
+        print("test_connection result:", ok)
+        return ok
+    except Exception as e:
+        print("Error while calling test_connection():", repr(e))
+        traceback.print_exc()
+        return False
+
+def main():
+    print_env()
+    try:
+        ok = asyncio.run(run_test())
+        if not ok:
+            print("\nGemini connectivity test failed. Check GEMINI_API_KEY in .env and network access. If you do not have a valid key, set GEMINI_API_KEY to an empty string or modify src/asdsadf_agent.py to bypass Gemini for local testing.")
+            sys.exit(2)
+        else:
+            print("\nGemini connectivity OK")
+            sys.exit(0)
+    except KeyboardInterrupt:
+        print("Interrupted")
+        sys.exit(1)
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,79 @@
+{
+  "samples": [
+    {
+      "id": "sample-01-zero-shot",
+      "user_prompt": "Hi ASDSADF — 8 months frontend experience with React. I have 12-15 hrs/week. I want a 6-month full-stack roadmap focused on Node.js/Express.",
+      "prompt_type": "zero-shot",
+      "expected": {
+        "user_profile": {
+          "current_level": "intermediate",
+          "primary_goal": "full-stack"
+        },
+        "roadmap": {
+          "phases_count": 3,
+          "includes_module": "Node.js"
+        }
+      }
+    },
+    {
+      "id": "sample-02-one-shot",
+      "user_prompt": "I'm a total beginner with only HTML/CSS. I can spend 8 hrs/week. I need a 9-month plan to become a junior frontend developer.",
+      "prompt_type": "one-shot",
+      "expected": {
+        "user_profile": {
+          "current_level": "beginner",
+          "primary_goal": "frontend developer"
+        },
+        "roadmap": {
+          "phases_count": 4,
+          "includes_module": "JavaScript Fundamentals"
+        }
+      }
+    },
+    {
+      "id": "sample-03-chain-of-thought",
+      "user_prompt": "I have 2 years of frontend experience. I want to specialize in performance and accessibility. I have 10 hrs/week available.",
+      "prompt_type": "chain_of_thought",
+      "expected": {
+        "user_profile": {
+          "current_level": "intermediate",
+          "primary_goal": "performance and accessibility"
+        },
+        "roadmap": {
+          "includes_module": "Web Vitals",
+          "includes_module": "WCAG"
+        },
+        "reasoning_summary": {
+          "exists": true
+        }
+      }
+    },
+    {
+      "id": "sample-04-dynamic",
+      "user_prompt": "I've completed Phase 1 of my roadmap on JavaScript. Update my plan to focus more on React state management for Phase 2.",
+      "prompt_type": "dynamic",
+      "expected": {
+        "roadmap": {
+          "includes_module": "React State Management"
+        },
+        "user_profile": {
+          "current_level": "intermediate"
+        }
+      }
+    },
+    {
+      "id": "sample-05-multi-shot",
+      "user_prompt": "What should I learn first?",
+      "follow_up_prompt": "Okay, I know JavaScript. Now what?",
+      "prompt_type": "multi_shot",
+      "expected": {
+        "roadmap": {
+          "includes_module": "React"
+        },
+        "user_profile": {
+          "current_level": "intermediate"
+        }
+      }
+    }
+  ]
+}
