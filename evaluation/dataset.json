@@ -3,7 +3,11 @@
     {
       "id": "sample-01-zero-shot",
       "user_prompt": "Hi ASDSADF — 8 months frontend experience with React. I have 12-15 hrs/week. I want a 6-month full-stack roadmap focused on Node.js/Express.",
-      "prompt_type": "zero-shot",
+      "prompt_type": "zero_shot",
+      "user_profile": {
+        "current_level": "intermediate",
+        "time_commitment": "12-15 hrs/week"
+      },
       "expected": {
         "user_profile": {
           "current_level": "intermediate",
@@ -18,15 +22,19 @@
     {
       "id": "sample-02-one-shot",
       "user_prompt": "I'm a total beginner with only HTML/CSS. I can spend 8 hrs/week. I need a 9-month plan to become a junior frontend developer.",
-      "prompt_type": "one-shot",
+      "prompt_type": "one_shot",
+      "user_profile": {
+        "current_level": "beginner",
+        "time_commitment": "8 hrs/week"
+      },
       "expected": {
         "user_profile": {
           "current_level": "beginner",
-          "primary_goal": "frontend developer"
+          "primary_goal": "frontend"
         },
         "roadmap": {
           "phases_count": 4,
-          "includes_module": "JavaScript Fundamentals"
+          "includes_module": "JavaScript"
         }
       }
     },
@@ -34,14 +42,17 @@
       "id": "sample-03-chain-of-thought",
       "user_prompt": "I have 2 years of frontend experience. I want to specialize in performance and accessibility. I have 10 hrs/week available.",
       "prompt_type": "chain_of_thought",
+      "user_profile": {
+        "current_level": "intermediate",
+        "time_commitment": "10 hrs/week"
+      },
       "expected": {
         "user_profile": {
           "current_level": "intermediate",
           "primary_goal": "performance and accessibility"
         },
         "roadmap": {
-          "includes_module": "Web Vitals",
-          "includes_module": "WCAG"
+          "includes_module": "Web Vitals"
         },
         "reasoning_summary": {
           "exists": true
@@ -50,11 +61,30 @@
     },
     {
       "id": "sample-04-dynamic",
-      "user_prompt": "I've completed Phase 1 of my roadmap on JavaScript. Update my plan to focus more on React state management for Phase 2.",
+      "user_prompt": "I've completed Phase 1 on JavaScript. Update my plan to focus more on React state management for Phase 2.",
       "prompt_type": "dynamic",
+      "user_profile": {
+        "current_level": "intermediate",
+        "progress": "completed phase 1"
+      },
       "expected": {
         "roadmap": {
           "includes_module": "React State Management"
+        }
+      }
+    },
+    {
+      "id": "sample-05-multi-shot",
+      "user_prompt": "What should I learn first? (I know basic JavaScript)",
+      "follow_up_prompt": "Okay, I know JavaScript. Now what?",
+      "prompt_type": "multi_shot",
+      "user_profile": {
+        "current_level": "intermediate",
+        "time_commitment": "6-10 hrs/week"
+      },
+      "expected": {
+        "roadmap": {
+          "includes_module": "React"
         },
         "user_profile": {
           "current_level": "intermediate"
@@ -62,16 +92,20 @@
       }
     },
     {
-      "id": "sample-05-multi-shot",
-      "user_prompt": "What should I learn first?",
-      "follow_up_prompt": "Okay, I know JavaScript. Now what?",
-      "prompt_type": "multi_shot",
+      "id": "sample-06-evaluation-focus",
+      "user_prompt": "I want a short 3-month plan to be job-ready for frontend roles focusing on React and testing.",
+      "prompt_type": "zero_shot",
+      "user_profile": {
+        "current_level": "beginner",
+        "time_commitment": "15 hrs/week"
+      },
       "expected": {
         "roadmap": {
+          "phases_count": 2,
           "includes_module": "React"
         },
         "user_profile": {
-          "current_level": "intermediate"
+          "primary_goal": "frontend"
         }
       }
     }

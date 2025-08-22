@@ -116,14 +116,29 @@
                 
                 // Remove the loading placeholder
                 chatContainer.removeChild(chatContainer.lastChild);
-                
-                if (data.error) {
-                    addMessageToChat('assistant', `❌ **Error:** ${data.message}`);
+
+                // Normalize backend wrapper: prefer { success, data, error } shape while remaining compatible
+                let payload = data;
+                if (data && typeof data === 'object' && ('success' in data || 'data' in data || 'error' in data)) {
+                    if (data.success === false) {
+                        const errMsg = data.error || data.message || 'Unknown error';
+                        addMessageToChat('assistant', `❌ **Error:** ${escapeHtml(String(errMsg))}`);
+                        return;
+                    }
+                    payload = data.data !== undefined ? data.data : {};
+                }
+
+                // If there is an explicit error field (legacy), handle it
+                if (payload && payload.error) {
+                    addMessageToChat('assistant', `❌ **Error:** ${escapeHtml(String(payload.error))}`);
                 } else {
-                    displayStructuredResponse(data);
+                    displayStructuredResponse(payload);
                 }
             } catch (error) {
-                chatContainer.removeChild(chatContainer.lastChild);
+                // Remove the loading placeholder if present
+                if (chatContainer.lastChild && chatContainer.lastChild.textContent === '...') {
+                    chatContainer.removeChild(chatContainer.lastChild);
+                }
                 addMessageToChat('assistant', `❌ **Network Error:** Could not reach the server.`);
             } finally {
                 sendButton.disabled = false;
@@ -149,17 +164,124 @@
         }
 
         function displayStructuredResponse(data) {
-            let htmlContent = '<strong>ASDSADF:</strong><br>';
-            if (data.roadmap && data.roadmap.phases) {
-                htmlContent += `<h4>🗺️ Your Learning Roadmap</h4>`;
-                data.roadmap.phases.forEach(phase => {
-                    htmlContent += `<strong>Phase ${phase.phase_id}: ${phase.title}</strong> (${phase.duration})<br>`;
-                });
-            } else {
-                 htmlContent += 'I am ready to help. Please provide more details about your goals.';
+            // Normalize/unwrap common wrapper shapes: { success, data }, { response: {...} }, { data: {...} }
+            function normalize(d) {
+                let obj = d;
+                for (let i = 0; i < 5; i++) {
+                    if (!obj || typeof obj !== 'object') break;
+                    if ('data' in obj) {
+                        obj = obj.data;
+                        continue;
+                    }
+                    if ('response' in obj) {
+                        obj = obj.response;
+                        continue;
+                    }
+                    if ('result' in obj) {
+                        obj = obj.result;
+                        continue;
+                    }
+                    // OpenAI/GPT-like wrapper
+                    if (Array.isArray(obj.choices) && obj.choices[0]) {
+                        const c = obj.choices[0];
+                        if (c.message && (c.message.content || c.message)) {
+                            obj = c.message.content || c.message;
+                            continue;
+                        }
+                        if (c.text) { obj = c.text; continue; }
+                    }
+                    break;
+                }
+                return obj;
             }
 
-            htmlContent += `<br><details><summary>📄 View Full JSON Response</summary><pre><code>${escapeHtml(JSON.stringify(data, null, 2))}</code></pre></details>`;
+            const payload = normalize(data);
+            let htmlContent = '<strong>ASDSADF:</strong><br>';
+
+            // If payload is a plain string, print it
+            if (typeof payload === 'string') {
+                htmlContent += `<div>${escapeHtml(payload)}</div>`;
+                htmlContent += `<br><details><summary>📄 View Full JSON Response</summary><pre><code>${escapeHtml(JSON.stringify(data, null, 2))}</code></pre></details>`;
+                addMessageToChat('assistant', htmlContent);
+                return;
+            }
+
+            // Explanation
+            if (payload.explanation) {
+                htmlContent += `<p>${escapeHtml(payload.explanation)}</p>`;
+            }
+
+            // Key points
+            if (Array.isArray(payload.key_points) && payload.key_points.length) {
+                htmlContent += '<h4>🔑 Key points</h4><ul>';
+                payload.key_points.forEach(k => {
+                    htmlContent += `<li>${escapeHtml(String(k))}</li>`;
+                });
+                htmlContent += '</ul>';
+            }
+
+            // Next steps
+            if (payload.next_steps) {
+                htmlContent += `<h4>➡️ Next steps</h4><p>${escapeHtml(payload.next_steps)}</p>`;
+            }
+
+            // Roadmap rendering
+            const roadmap = payload.roadmap || (payload.data && payload.data.roadmap) || null;
+            if (roadmap && Array.isArray(roadmap.phases) && roadmap.phases.length) {
+                htmlContent += `<h4>🗺️ Your Learning Roadmap</h4>`;
+                roadmap.phases.forEach(phase => {
+                    const pid = phase.phase_id || phase.id || '';
+                    const title = phase.title || phase.name || 'Phase';
+                    const duration = phase.duration ? `(${escapeHtml(phase.duration)})` : '';
+                    const desc = phase.description ? `<div>${escapeHtml(phase.description)}</div>` : '';
+                    htmlContent += `<div style="margin-bottom:12px"><strong>Phase ${escapeHtml(String(pid))}: ${escapeHtml(title)}</strong> ${duration}${desc}`;
+
+                    if (Array.isArray(phase.modules) && phase.modules.length) {
+                        htmlContent += '<ul>';
+                        phase.modules.forEach(mod => {
+                            const mtitle = mod.module_name || mod.title || 'Module';
+                            htmlContent += `<li><strong>${escapeHtml(mtitle)}</strong>`;
+                            if (Array.isArray(mod.concepts) && mod.concepts.length) {
+                                htmlContent += `<div style="margin:6px 0"><em>Concepts:</em> ${escapeHtml(mod.concepts.join(', '))}</div>`;
+                            }
+                            if (Array.isArray(mod.resources) && mod.resources.length) {
+                                htmlContent += '<div style="margin:6px 0"><em>Resources:</em><ul>';
+                                mod.resources.forEach(res => {
+                                    const title = res.title || res.name || 'Resource';
+                                    const url = res.url || res.link || '';
+                                    const type = res.type ? ` [${escapeHtml(res.type)}]` : '';
+                                    if (url) {
+                                        htmlContent += `<li><a href="${escapeHtml(url)}" target="_blank" rel="noopener">${escapeHtml(title)}</a>${type}</li>`;
+                                    } else {
+                                        htmlContent += `<li>${escapeHtml(title)}${type}</li>`;
+                                    }
+                                });
+                                htmlContent += '</ul></div>';
+                            }
+
+                            // Hands-on project
+                            if (mod.hands_on_project) {
+                                const p = mod.hands_on_project;
+                                htmlContent += `<div style="margin-top:6px"><em>Project:</em> <strong>${escapeHtml(p.title || 'Project')}</strong> - ${escapeHtml(p.description || '')}</div>`;
+                            }
+
+                            htmlContent += '</li>';
+                        });
+                        htmlContent += '</ul>';
+                    }
+
+                    htmlContent += '</div>';
+                });
+            }
+
+            // If nothing rendered yet, show a friendly prompt
+            if (htmlContent === '<strong>ASDSADF:</strong><br>') {
+                htmlContent += 'I am ready to help. Please provide more details about your goals.';
+            }
+
+            // Full JSON collapsible for transparency
+            htmlContent += `<br><details><summary>📄 View Full JSON Response</summary><pre><code>${escapeHtml(JSON.stringify(payload, null, 2))}</code></pre></details>`;
+
             addMessageToChat('assistant', htmlContent);
         }
     </script>
