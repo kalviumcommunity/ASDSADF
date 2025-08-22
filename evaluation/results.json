@@ -1,0 +1,62 @@
+{
+  "summary": {
+    "total": 6,
+    "pass": 3,
+    "fail": 3,
+    "failed_ids": [
+      "sample-01-zero-shot",
+      "sample-02-one-shot",
+      "sample-06-evaluation-focus"
+    ]
+  },
+  "results": [
+    {
+      "id": "sample-01-zero-shot",
+      "status": "FAIL",
+      "reason": "Expected at least 3 phases, but no structured roadmap present",
+      "response_preview": "{\n  \"response\": \"Hello!  With 8 months of React experience and 12-15 hours a week available, a 6-month full-stack roadmap focusing on Node.js/Express is achievable. Here's a plan, broken down by month, keeping your time constraints in mind:\\n\\n**Month 1: Node.js Fundamentals & Express Basics**\\n\\n* **Goal:**  Understand Node.js's event loop, asynchronous programming, modules, and build basic REST APIs with Express.\\n* **Activities:**\\n    * Complete a comprehensive Node.js course (e.g., Node.js on Udemy, freeCodeCamp's Node.js curriculum). Focus on understanding core concepts rather than trying to learn everything.\\n    * Build small projects:  A simple to-do list API, a basic user authentication system (without a database initially – just in-memory storage).\\n    * Learn about npm and pac",
+      "context_used": [],
+      "judge_prompt": "Judge this output for sample 'sample-01-zero-shot'. Criteria:\n- user_profile keys: ['current_level', 'primary_goal']\n- roadmap expectations: {'phases_count': 3, 'includes_module': 'Node.js'}\n- reasoning_summary required: None\nReturn PASS/FAIL and reason. Automated checks performed: substring matching (case-insensitive) for text fields, counts for phases, module inclusion checks. If agent returns unstructured text, heuristics are used."
+    },
+    {
+      "id": "sample-02-one-shot",
+      "status": "FAIL",
+      "reason": "Expected at least 4 phases, but no structured roadmap present",
+      "response_preview": "{\n  \"response\": \"Okay, here's a 9-month plan for you, assuming 8 hours/week commitment, starting with your existing HTML/CSS knowledge.  This plan focuses on practical application and building a portfolio.\\n\\n**Phase 1: Solidifying Foundations (Months 1-2, 8 hrs/week)**\\n\\n* **Week 1-4: Advanced HTML & CSS (2 hrs/week each):**  Go beyond the basics.  Focus on:\\n    * **Semantic HTML5:**  Master structuring websites with meaning (article, aside, nav, etc.).\\n    * **CSS methodologies:** Learn at least one CSS methodology (e.g., BEM, OOCSS, SMACSS) for better organization and maintainability.\\n    * **Responsive design:**  Master media queries and mobile-first development.  Practice creating responsive layouts.\\n    * **CSS preprocessors (optional, but recommended):**  Start learning Sass or",
+      "context_used": [],
+      "judge_prompt": "Judge this output for sample 'sample-02-one-shot'. Criteria:\n- user_profile keys: ['current_level', 'primary_goal']\n- roadmap expectations: {'phases_count': 4, 'includes_module': 'JavaScript'}\n- reasoning_summary required: None\nReturn PASS/FAIL and reason. Automated checks performed: substring matching (case-insensitive) for text fields, counts for phases, module inclusion checks. If agent returns unstructured text, heuristics are used."
+    },
+    {
+      "id": "sample-03-chain-of-thought",
+      "status": "PASS",
+      "reason": "PASS",
+      "response_preview": "{\n  \"response\": \"Okay, as ASDSADF, let's break down how to specialize in frontend performance and accessibility with only 10 hours a week.  We'll proceed step-by-step:\\n\\n**Step 1: Prioritize - Performance or Accessibility First?**\\n\\nWhile both are crucial, focusing on one initially will yield faster, more tangible results.  Given 10 hours/week is limited, let's choose one to master first, then integrate the other.  Which one is more appealing or where do you see more immediate job market demand?  Let's assume, for now, we prioritize **Performance**.  This can be revisited later.\\n\\n**Step 2:  Performance Specialization Plan (10 hours/week)**\\n\\n* **2 hours/week:  Learning Resources:** Dedicate this time to structured learning.  Excellent resources include:\\n    * **Courses:**  Look for c",
+      "context_used": [],
+      "judge_prompt": "Judge this output for sample 'sample-03-chain-of-thought'. Criteria:\n- user_profile keys: ['current_level', 'primary_goal']\n- roadmap expectations: {'includes_module': 'Web Vitals'}\n- reasoning_summary required: {'exists': True}\nReturn PASS/FAIL and reason. Automated checks performed: substring matching (case-insensitive) for text fields, counts for phases, module inclusion checks. If agent returns unstructured text, heuristics are used."
+    },
+    {
+      "id": "sample-04-dynamic",
+      "status": "PASS",
+      "reason": "PASS",
+      "response_preview": "{\n  \"response\": \"Okay, I understand.  Since you've finished Phase 1 on JavaScript, let's adjust your learning plan to prioritize React state management for Phase 2.  To best tailor this plan, I need some more information:\\n\\n1. **What aspects of JavaScript are you most confident in from Phase 1?** (e.g., DOM manipulation, asynchronous programming, ES6 features)  This helps me avoid unnecessary repetition.\\n\\n2. **What's your current understanding of React?** (e.g., components, JSX, props)  This will determine the starting point for the state management section.\\n\\n3. **What are your goals for Phase 2?** (e.g., build a specific application, master a particular state management library, understand the underlying concepts)  This will guide the selection of specific libraries and projects.\\n\\n",
+      "context_used": [],
+      "judge_prompt": "Judge this output for sample 'sample-04-dynamic'. Criteria:\n- user_profile keys: []\n- roadmap expectations: {'includes_module': 'React State Management'}\n- reasoning_summary required: None\nReturn PASS/FAIL and reason. Automated checks performed: substring matching (case-insensitive) for text fields, counts for phases, module inclusion checks. If agent returns unstructured text, heuristics are used."
+    },
+    {
+      "id": "sample-05-multi-shot",
+      "status": "PASS",
+      "reason": "PASS",
+      "response_preview": "{\n  \"response\": \"As ASDSADF, I recommend a phased approach to learning, building upon your existing JavaScript foundation.  Here's a structured path with examples at each stage:\\n\\n**Phase 1: Deepening JavaScript Proficiency**\\n\\n* **Focus:** Mastering core JavaScript concepts and best practices.  Don't jump to frameworks yet!\\n\\n* **Examples:**\\n    * **Advanced JavaScript Concepts:**  Asynchronous programming (Promises, Async/Await), closures, prototypal inheritance, functional programming paradigms (map, reduce, filter), error handling (try...catch), and working with the DOM (Document Object Model) more extensively.  Practice building small, complex projects to solidify these concepts.  For example, create a to-do list app with local storage persistence, or a simple animation using the ",
+      "context_used": [],
+      "judge_prompt": "Judge this output for sample 'sample-05-multi-shot'. Criteria:\n- user_profile keys: ['current_level']\n- roadmap expectations: {'includes_module': 'React'}\n- reasoning_summary required: None\nReturn PASS/FAIL and reason. Automated checks performed: substring matching (case-insensitive) for text fields, counts for phases, module inclusion checks. If agent returns unstructured text, heuristics are used."
+    },
+    {
+      "id": "sample-06-evaluation-focus",
+      "status": "FAIL",
+      "reason": "Expected at least 2 phases, but no structured roadmap present",
+      "response_preview": "{\n  \"response\": \"Okay, here's a 3-month plan to get you job-ready for frontend roles focusing on React and testing.  This plan assumes some prior programming experience. If you're completely new to programming, you'll need to adjust the timeline accordingly.\\n\\n**Month 1: React Fundamentals & Core Concepts**\\n\\n* **Weeks 1-2: JavaScript Refresher & ES6+:**  Brush up on your JavaScript fundamentals. Focus on ES6+ features (arrow functions, classes, destructuring, promises, async/await). Resources:  freeCodeCamp, MDN Web Docs, Scrimba.  Practice coding challenges on LeetCode or HackerRank focusing on JavaScript.\\n* **Weeks 3-4: React Core Concepts:** Learn the basics of React: components, JSX, props, state, lifecycle methods (though these are less crucial in functional components with Hooks)",
+      "context_used": [],
+      "judge_prompt": "Judge this output for sample 'sample-06-evaluation-focus'. Criteria:\n- user_profile keys: ['primary_goal']\n- roadmap expectations: {'phases_count': 2, 'includes_module': 'React'}\n- reasoning_summary required: None\nReturn PASS/FAIL and reason. Automated checks performed: substring matching (case-insensitive) for text fields, counts for phases, module inclusion checks. If agent returns unstructured text, heuristics are used."
+    }
+  ]
+}
