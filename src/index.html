@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>ASDSADF - AI Learning Assistant</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; max-width: 1200px; margin: 0 auto; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; }
+        .container { background: white; border-radius: 15px; padding: 30px; box-shadow: 0 20px 40px rgba(0,0,0,0.1); }
+        .header { text-align: center; margin-bottom: 40px; }
+        .header h1 { color: #333; margin: 0; font-size: 2.5em; }
+        .header p { color: #666; font-size: 1.1em; margin: 10px 0 0 0; }
+        .chat-container { border: 2px solid #e1e5e9; border-radius: 10px; height: 400px; overflow-y: auto; padding: 20px; background: #f8f9fa; margin-bottom: 20px; }
+        .message { margin: 15px 0; padding: 15px; border-radius: 10px; max-width: 80%; word-wrap: break-word; line-height: 1.5; }
+        .user-message { background: #007bff; color: white; margin-left: auto; text-align: right; }
+        .assistant-message { background: white; border: 1px solid #dee2e6; margin-right: auto; }
+        .input-group { display: flex; gap: 10px; margin-bottom: 20px; }
+        .input-group input { padding: 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 16px; flex: 1; }
+        .input-group button { padding: 12px 24px; background: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 16px; transition: background 0.3s; }
+        .input-group button:hover { background: #0056b3; }
+        .input-group button:disabled { background: #6c757d; cursor: not-allowed; }
+        .prompt-types { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 30px; }
+        .prompt-type { padding: 15px; border: 2px solid #e1e5e9; border-radius: 8px; background: white; cursor: pointer; transition: all 0.3s; text-align: center; }
+        .prompt-type:hover { border-color: #007bff; background: #f8f9ff; }
+        .prompt-type.active { border-color: #007bff; background: #e3f2fd; font-weight: bold; }
+        .examples { background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; }
+        .examples h3 { margin-top: 0; color: #333; }
+        .example { background: white; padding: 15px; margin: 10px 0; border-radius: 5px; border-left: 4px solid #007bff; cursor: pointer; transition: background 0.3s; }
+        .example:hover { background: #f0f0f0; }
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 15px; border-radius: 5px; overflow-x: auto; white-space: pre-wrap; word-wrap: break-word; }
+        details > summary { cursor: pointer; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 ASDSADF</h1>
+            <p>Aspiring Developer's Skill Acquisition and Development Framework</p>
+        </div>
+
+        <div class="prompt-types">
+            <div class="prompt-type active" data-type="zero-shot"><h4>Zero-Shot</h4><p>Direct instruction</p></div>
+            <div class="prompt-type" data-type="one-shot"><h4>One-Shot</h4><p>Example-guided</p></div>
+            <div class="prompt-type" data-type="multi-shot"><h4>Multi-Shot</h4><p>Conversational</p></div>
+            <div class="prompt-type" data-type="dynamic"><h4>Dynamic</h4><p>Adaptive/Update</p></div>
+            <div class="prompt-type" data-type="chain-of-thought"><h4>Chain of Thought</h4><p>Step-by-step reasoning</p></div>
+        </div>
+
+        <div class="examples">
+            <h3>📝 Example Queries</h3>
+            <div class="example" data-example="I'm a beginner with 2 months of HTML/CSS experience. I want to become a frontend developer in 8 months. Can you create a learning roadmap for me?">🌟 Beginner Frontend Roadmap</div>
+            <div class="example" data-example="I have 1 year of React experience. I want to become a full-stack developer in 12 months, using Node.js/Express.">🔄 Frontend to Full-Stack</div>
+            <div class="example" data-example="Update my current roadmap: I've finished the JavaScript basics. What should I focus on next for React?">🔄 Dynamic Progress Update</div>
+        </div>
+
+        <div class="chat-container" id="chatContainer">
+            <div class="message assistant-message">
+                <strong>ASDSADF:</strong> Welcome! I'm your AI learning mentor. Tell me about your current skills and career goals, and I'll create a personalized roadmap. Choose a prompt strategy and an example, or write your own query below!
+            </div>
+        </div>
+
+        <div class="input-group">
+            <input type="text" id="messageInput" placeholder="Describe your learning goals..." onkeypress="handleKeyPress(event)">
+            <button onclick="sendMessage()" id="sendButton">Send</button>
+        </div>
+    </div>
+
+    <script>
+        let currentPromptType = 'zero-shot';
+        const sessionId = Math.random().toString(36).substring(2, 15);
+        const chatContainer = document.getElementById('chatContainer');
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+
+        document.querySelectorAll('.prompt-type').forEach(el => {
+            el.addEventListener('click', () => {
+                document.querySelector('.prompt-type.active').classList.remove('active');
+                el.classList.add('active');
+                currentPromptType = el.dataset.type;
+            });
+        });
+
+        document.querySelectorAll('.example').forEach(el => {
+            el.addEventListener('click', () => {
+                messageInput.value = el.dataset.example;
+                messageInput.focus();
+            });
+        });
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') sendMessage();
+        }
+
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            addMessageToChat('user', message);
+            messageInput.value = '';
+            sendButton.disabled = true;
+            sendButton.textContent = 'Thinking...';
+            addMessageToChat('assistant', '...'); // Placeholder for loading
+
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: message,
+                        prompt_type: currentPromptType,
+                        session_id: sessionId
+                    })
+                });
+
+                const data = await response.json();
+                
+                // Remove the loading placeholder
+                chatContainer.removeChild(chatContainer.lastChild);
+                
+                if (data.error) {
+                    addMessageToChat('assistant', `❌ **Error:** ${data.message}`);
+                } else {
+                    displayStructuredResponse(data);
+                }
+            } catch (error) {
+                chatContainer.removeChild(chatContainer.lastChild);
+                addMessageToChat('assistant', `❌ **Network Error:** Could not reach the server.`);
+            } finally {
+                sendButton.disabled = false;
+                sendButton.textContent = 'Send';
+            }
+        }
+
+        function addMessageToChat(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${role}-message`;
+            messageDiv.innerHTML = role === 'user' ? `<strong>You:</strong><br>${content}` : content;
+            chatContainer.appendChild(messageDiv);
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
+        
+        function escapeHtml(unsafe) {
+            return unsafe
+                 .replace(/&/g, "&amp;")
+                 .replace(/</g, "&lt;")
+                 .replace(/>/g, "&gt;")
+                 .replace(/"/g, "&quot;")
+                 .replace(/'/g, "&#039;");
+        }
+
+        function displayStructuredResponse(data) {
+            let htmlContent = '<strong>ASDSADF:</strong><br>';
+            if (data.roadmap && data.roadmap.phases) {
+                htmlContent += `<h4>🗺️ Your Learning Roadmap</h4>`;
+                data.roadmap.phases.forEach(phase => {
+                    htmlContent += `<strong>Phase ${phase.phase_id}: ${phase.title}</strong> (${phase.duration})<br>`;
+                });
+            } else {
+                 htmlContent += 'I am ready to help. Please provide more details about your goals.';
+            }
+
+            htmlContent += `<br><details><summary>📄 View Full JSON Response</summary><pre><code>${escapeHtml(JSON.stringify(data, null, 2))}</code></pre></details>`;
+            addMessageToChat('assistant', htmlContent);
+        }
+    </script>
+</body>
+</html>
